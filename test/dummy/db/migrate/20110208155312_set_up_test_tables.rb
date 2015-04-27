@@ -164,6 +164,21 @@ class SetUpTestTables < ActiveRecord::Migration
       t.integer :order_id
       t.string  :product
     end
+
+
+    create_table :chapters, :force => true do |t|
+      t.string :name
+    end
+
+    create_table :sections, :force => true do |t|
+      t.string :name
+      t.belongs_to :chapter
+    end
+
+    create_table :paragraphs, :force => true do |t|
+      t.string :name
+      t.belongs_to :section
+    end
   end
 
   def self.down

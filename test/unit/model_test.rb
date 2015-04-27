@@ -1887,4 +1887,30 @@ class HasPaperTrailModelTransactionalTest < ActiveSupport::TestCase
       end
     end
   end
+
+  context 'has_many through relationship' do
+    setup { @chapter = Chapter.create!(:name => 'chapter') }
+    setup do
+      @section = @chapter.sections.create!(:name => 'section')
+      @paragraph = @section.paragraphs.create!(:name => 'paragraph')
+    end
+    context 'reify chapter after updating an attribute' do
+      setup do
+        @chapter.update_attributes! :name => 'chapter_1'
+        @chapter.sections.first.update_attributes :name => 'section_1'
+        @chapter.paragraphs.first.update_attributes :name => 'paragraph_1'
+      end
+
+      context 'revert back changes after reifying chapter' do
+        setup do
+          @chapter_1 = @chapter.versions.last.reify(:has_many => true)
+        end
+        should 'assert changes as true' do
+          assert_equal 'chapter', @chapter_1.name
+          assert_equal ['section'], @chapter_1.sections.map(&:name)
+          assert_equal ['paragraph'], @chapter_1.paragraphs.map(&:name)
+        end
+      end
+    end
+  end
 end

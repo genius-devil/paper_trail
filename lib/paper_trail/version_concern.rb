@@ -355,7 +355,14 @@ module PaperTrail
       associations.each do |assoc|
         next unless assoc.klass.paper_trail_enabled_for_model?
         through_collection = model.send(assoc.options[:through])
-        collection_keys = through_collection.map { |through_model| through_model.send(assoc.foreign_key) }
+        #handling situation when A has many B through C,
+        # C belongs to A and C has many B,
+        # B belongs to C
+        if through_collection.empty? or through_collection.first.respond_to?(assoc.foreign_key)
+          collection_keys = through_collection.map { |through_model| through_model.send(assoc.foreign_key) }
+        else
+          collection_keys = through_collection.first.send(assoc.name).pluck(:id)
+        end
 
         version_id_subquery = assoc.klass.paper_trail_version_class.
           select("MIN(id)").
